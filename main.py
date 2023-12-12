@@ -7,8 +7,6 @@ import ssl
 import json
 import yaml
 
-ssl._create_default_https_context = ssl._create_unverified_context
-
 class VideoTranscriber:
     def __init__(self, model_path, video_path):
         self.model = whisper.load_model(model_path)
@@ -139,19 +137,21 @@ class VideoTranscriber:
         clip = clip.set_audio(audio)
         clip.write_videofile(output_video_path)
 
+# load yaml
 with open('config.yaml', 'r') as file:
     config = yaml.safe_load(file)
-
 print('CONFIG')
 print(config)
 
+# setup variables and constants
+ssl._create_default_https_context = ssl._create_unverified_context #disable SSL
 TEXT_COLOR = (config['TEXT_COLOR_R'],config['TEXT_COLOR_G'],config['TEXT_COLOR_B'])
-
 model_path = "base"
 video_path = f"{config['FOLDER_PATH']}source.mp4"
 output_video_path = f"{config['FOLDER_PATH']}result.mp4"
 output_audio_path = f"{config['FOLDER_PATH']}audio.mp3"
 
+# run the script
 transcriber = VideoTranscriber(model_path, video_path)
 transcriber.extract_audio(output_audio_path)
 transcriber.transcribe_video()
