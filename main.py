@@ -3,6 +3,9 @@ import os
 import cv2
 from moviepy.editor import ImageSequenceClip, AudioFileClip, VideoFileClip
 from tqdm import tqdm
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 class VideoTranscriber:
     def __init__(self, model_path, video_path):
@@ -67,7 +70,7 @@ class VideoTranscriber:
         cap.release()
         print('Transcription complete')
     
-    def extract_audio(self, output_audio_path='test_videos/audio.mp3'):
+    def extract_audio(self, output_audio_path):
         print('Extracting audio')
         video = VideoFileClip(self.video_path)
         audio = video.audio 
@@ -127,10 +130,11 @@ class VideoTranscriber:
 
 # Example usage
 model_path = "base"
-video_path = "test_videos/videoplayback.mp4"
-output_video_path = "test_videos/output.mp4"
+video_path = "test_videos/test.mp4"
+output_video_path = "test_videos/result.mp4"
+output_audio_path = 'test_videos/audio.mp3'
 
 transcriber = VideoTranscriber(model_path, video_path)
-transcriber.extract_audio()
+transcriber.extract_audio(output_audio_path)
 transcriber.transcribe_video()
 transcriber.create_video(output_video_path)
