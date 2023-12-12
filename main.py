@@ -31,8 +31,6 @@ class VideoTranscriber:
         self.fps = cap.get(cv2.CAP_PROP_FPS)
         self.char_width = int(textsize[0] / len(text))
 
-        list_each_text = []
-
         for j in tqdm(result["segments"]):
             lines = []
             text = j["text"]
@@ -67,12 +65,12 @@ class VideoTranscriber:
                 line_array = [line, int(start) + 15, int(len(line) / total_chars * total_frames) + int(start) + 15]
                 start = int(len(line) / total_chars * total_frames) + int(start)
                 print(line_array)
-                list_each_text.append(line_array)
                 lines.append(line_array)
                 self.text_array.append(line_array)
         
-        with open(f"{config['FOLDER_PATH']}Dataset.json", "w") as f:
-            json.dump(list_each_text, f)
+        if config['NEW_TRANSCRIBE']:
+            with open(f"{config['FOLDER_PATH']}transcription.json", "w") as f:
+                json.dump(self.text_array, f)
 
         cap.release()
         print('Transcription complete')
@@ -100,7 +98,11 @@ class VideoTranscriber:
             
             frame = frame[:, int(int(width - 1 / asp * height) / 2):width - int((width - 1 / asp * height) / 2)]
 
-            for i in self.text_array:
+            with open(f"{config['FOLDER_PATH']}transcription.json") as handle:
+                text_array = json.loads(handle.read())
+            print(text_array)
+
+            for i in text_array:
                 if N_frames >= i[1] and N_frames <= i[2]:
                     text = i[0]
                     text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, config['FONT_SIZE_PRINT'], 2)
@@ -155,4 +157,5 @@ output_audio_path = f"{config['FOLDER_PATH']}audio.mp3"
 transcriber = VideoTranscriber(model_path, video_path)
 transcriber.extract_audio(output_audio_path)
 transcriber.transcribe_video()
-transcriber.create_video(output_video_path)
+if config['VIDEO_CREATION']:
+    transcriber.create_video(output_video_path)
