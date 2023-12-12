@@ -4,6 +4,7 @@ import cv2
 from moviepy.editor import ImageSequenceClip, AudioFileClip, VideoFileClip
 from tqdm import tqdm
 import ssl
+import json
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -20,7 +21,7 @@ class VideoTranscriber:
         print('Transcribing video')
         result = self.model.transcribe(self.audio_path)
         text = result["segments"][0]["text"]
-        textsize = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
+        textsize = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, FONT_SIZE_SPLIT, 2)[0]
         cap = cv2.VideoCapture(self.video_path)
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -30,7 +31,9 @@ class VideoTranscriber:
         width = width - (width * 0.1)
         self.fps = cap.get(cv2.CAP_PROP_FPS)
         self.char_width = int(textsize[0] / len(text))
-        
+
+        list_each_text = []
+
         for j in tqdm(result["segments"]):
             lines = []
             text = j["text"]
@@ -64,9 +67,14 @@ class VideoTranscriber:
                 
                 line_array = [line, int(start) + 15, int(len(line) / total_chars * total_frames) + int(start) + 15]
                 start = int(len(line) / total_chars * total_frames) + int(start)
+                print(line_array)
+                list_each_text.append(line_array)
                 lines.append(line_array)
                 self.text_array.append(line_array)
         
+        with open("Dataset.json", "w") as f:
+            json.dump(list_each_text, f)
+
         cap.release()
         print('Transcription complete')
     
@@ -92,14 +100,16 @@ class VideoTranscriber:
                 break
             
             frame = frame[:, int(int(width - 1 / asp * height) / 2):width - int((width - 1 / asp * height) / 2)]
-            
+
             for i in self.text_array:
                 if N_frames >= i[1] and N_frames <= i[2]:
                     text = i[0]
-                    text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
+                    text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, FONT_SIZE_PRINT, 2)
+                    # position of text
                     text_x = int((frame.shape[1] - text_size[0]) / 2)
+                    # position of text is in middle vertically
                     text_y = int(height/2)
-                    cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                    cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, FONT_SIZE_PRINT, TEXT_COLOR, 2)
                     break
             
             cv2.imwrite(os.path.join(output_folder, str(N_frames) + ".jpg"), frame)
@@ -128,10 +138,13 @@ class VideoTranscriber:
         clip = clip.set_audio(audio)
         clip.write_videofile(output_video_path)
 
-# Example usage
+FONT_SIZE_SPLIT = 2
+FONT_SIZE_PRINT = 0.8
+TEXT_COLOR = (0, 255, 0)
+
 model_path = "base"
-video_path = "test_videos/test.mp4"
-output_video_path = "test_videos/result.mp4"
+video_path = f"test_videos/test.mp4"
+output_video_path = f"test_videos/result.mp4"
 output_audio_path = 'test_videos/audio.mp3'
 
 transcriber = VideoTranscriber(model_path, video_path)
