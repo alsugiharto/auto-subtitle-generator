@@ -5,6 +5,7 @@ from moviepy.editor import ImageSequenceClip, AudioFileClip, VideoFileClip
 from tqdm import tqdm
 import ssl
 import json
+import yaml
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -21,7 +22,7 @@ class VideoTranscriber:
         print('Transcribing video')
         result = self.model.transcribe(self.audio_path)
         text = result["segments"][0]["text"]
-        textsize = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, FONT_SIZE_SPLIT, 2)[0]
+        textsize = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, config['FONT_SIZE_SPLIT'], 2)[0]
         cap = cv2.VideoCapture(self.video_path)
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -72,7 +73,7 @@ class VideoTranscriber:
                 lines.append(line_array)
                 self.text_array.append(line_array)
         
-        with open("Dataset.json", "w") as f:
+        with open(f"{config['FOLDER_PATH']}Dataset.json", "w") as f:
             json.dump(list_each_text, f)
 
         cap.release()
@@ -104,12 +105,12 @@ class VideoTranscriber:
             for i in self.text_array:
                 if N_frames >= i[1] and N_frames <= i[2]:
                     text = i[0]
-                    text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, FONT_SIZE_PRINT, 2)
+                    text_size, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, config['FONT_SIZE_PRINT'], 2)
                     # position of text
                     text_x = int((frame.shape[1] - text_size[0]) / 2)
                     # position of text is in middle vertically
-                    text_y = int(height/2)
-                    cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, FONT_SIZE_PRINT, TEXT_COLOR, 2)
+                    text_y = int(height*config['TEXT_POSITION_Y'])
+                    cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, config['FONT_SIZE_PRINT'], TEXT_COLOR, 2)
                     break
             
             cv2.imwrite(os.path.join(output_folder, str(N_frames) + ".jpg"), frame)
@@ -138,14 +139,18 @@ class VideoTranscriber:
         clip = clip.set_audio(audio)
         clip.write_videofile(output_video_path)
 
-FONT_SIZE_SPLIT = 2
-FONT_SIZE_PRINT = 0.8
-TEXT_COLOR = (0, 255, 0)
+with open('config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+print('CONFIG')
+print(config)
+
+TEXT_COLOR = (config['TEXT_COLOR_R'],config['TEXT_COLOR_G'],config['TEXT_COLOR_B'])
 
 model_path = "base"
-video_path = f"test_videos/test.mp4"
-output_video_path = f"test_videos/result.mp4"
-output_audio_path = 'test_videos/audio.mp3'
+video_path = f"{config['FOLDER_PATH']}source.mp4"
+output_video_path = f"{config['FOLDER_PATH']}result.mp4"
+output_audio_path = f"{config['FOLDER_PATH']}audio.mp3"
 
 transcriber = VideoTranscriber(model_path, video_path)
 transcriber.extract_audio(output_audio_path)

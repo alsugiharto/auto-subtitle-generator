@@ -3,3 +3,4 @@ opencv-python==4.8.1.78
 tqdm==4.66.1 # tqdm is for loading percentage
 openai-whisper==20231117
 moviepy==1.0.3
+pyyaml==6.0.1
