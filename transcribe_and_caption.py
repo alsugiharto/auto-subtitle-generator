@@ -150,7 +150,7 @@ ssl._create_default_https_context = ssl._create_unverified_context #disable SSL
 TEXT_COLOR = (config['TEXT_COLOR_R'],config['TEXT_COLOR_G'],config['TEXT_COLOR_B'])
 model_path = "base"
 video_path = f"{config['FOLDER_PATH']}source.mp4"
-output_video_path = f"{config['FOLDER_PATH']}result.mp4"
+output_video_path = f"{config['FOLDER_PATH']}result_transcribe_and_caption.mp4"
 output_audio_path = f"{config['FOLDER_PATH']}audio.mp3"
 
 # run the script
