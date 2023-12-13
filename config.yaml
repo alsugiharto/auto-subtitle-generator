@@ -4,7 +4,10 @@ TEXT_COLOR_R: 0
 TEXT_COLOR_G: 255
 TEXT_COLOR_B: 0
 TEXT_POSITION_Y: 0.5 # middle
-FOLDER_PATH: 'test_video_indo/'
+# FOLDER_PATH: 'source/test_video_indo/'
+FOLDER_PATH: 'source/test_put_image_1/'
+# FOLDER_PATH: 'source/test_video_combine/'
+# FOLDER_PATH: 'source/test_audio/'
 # if false: the transcription won't be saved. Hence the old transcription saved, will be used
 NEW_TRANSCRIBE: False 
 # when you only want to create new transcription, you may want to skip video creation
